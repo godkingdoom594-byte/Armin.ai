@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Armin AI</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#101218;color:white;font-family:Tahoma,Arial,sans-serif;height:100vh}
+header{height:65px;background:#181b24;border-bottom:1px solid #303441;display:flex;align-items:center;justify-content:space-between;padding:0 18px}
+.logo{font-size:22px;font-weight:bold}
+#clock{color:#aeb4c5}
+main{height:calc(100vh - 65px);display:flex;flex-direction:column}
+#chat{flex:1;overflow-y:auto;padding:20px 10%}
+.welcome{text-align:center;margin-top:12vh}
+.robot{font-size:65px}
+.welcome h1{font-size:30px}
+.welcome p{color:#aeb4c5}
+.message{display:flex;margin:14px 0}
+.user{justify-content:flex-start}
+.ai{justify-content:flex-end}
+.bubble{max-width:80%;padding:13px 17px;border-radius:17px;line-height:1.8;white-space:pre-wrap;word-break:break-word}
+.user .bubble{background:#303545}
+.ai .bubble{background:#1b1e27;border:1px solid #303441}
+#inputArea{padding:12px 10%;background:#12141b;border-top:1px solid #303441}
+.box{background:#1b1e27;border:1px solid #343846;border-radius:18px;padding:10px}
+textarea{width:100%;height:50px;resize:none;background:transparent;border:0;outline:0;color:white;font-family:inherit;font-size:16px;direction:rtl}
+.buttons{display:flex;gap:8px}
+button{border:0;border-radius:11px;padding:11px 15px;background:#303545;color:white;font-size:15px;cursor:pointer}
+button:hover{background:#41475a}
+.send{margin-right:auto;background:#5b5cff}
+.file{display:none}
+.preview{display:none;margin-bottom:8px}
+.preview img{max-width:130px;max-height:130px;border-radius:12px}
+.modal{display:none;position:fixed;inset:0;background:#000b;align-items:center;justify-content:center;z-index:100}
+.modalBox{background:#1b1e27;padding:22px;border-radius:18px;width:90%;max-width:430px}
+.modalBox input{width:100%;padding:13px;border-radius:10px;border:1px solid #3b4050;background:#101218;color:white;direction:ltr}
+@media(max-width:700px){#chat,#inputArea{padding-left:10px;padding-right:10px}.bubble{max-width:90%}}
+</style>
+</head>
+<body>
+<header>
+<div class="logo">🤖 Armin AI</div>
+<div id="clock">00:00:00</div>
+</header>
+<main>
+<div id="chat">
+<div class="welcome" id="welcome">
+<div class="robot">🤖</div>
+<h1>سلام آرمین 👋</h1>
+<p>به Armin AI خوش آمدی!</p>
+<button onclick="example()">💡 یک سؤال نمونه</button>
+<button onclick="settings()">⚙️ API Key</button>
+</div>
+</div>
+<div id="inputArea">
+<div class="box">
+<div class="preview" id="preview"><img id="previewImg"></div>
+<textarea id="message" placeholder="پیامت را بنویس..." onkeydown="keyDown(event)"></textarea>
+<div class="buttons">
+<label>
+<button onclick="document.getElementById('photo').click()">📷 عکس</button>
+<input class="file" id="photo" type="file" accept="image/*" onchange="photoSelected(event)">
+</label>
+<button onclick="voice()">🎤</button>
+<button class="send" onclick="send()">ارسال ➤</button>
+</div>
+</div>
+</div>
+</main>
+<div class="modal" id="modal">
+<div class="modalBox">
+<h2>⚙️ API Key</h2>
+<p>کلید API را وارد کن:</p>
+<input id="key" type="password" placeholder="sk-...">
+<br><br>
+<button onclick="saveKey()">ذخیره</button>
+<button onclick="closeSettings()">بستن</button>
+<p id="status"></p>
+</div>
+</div>
+<script>
+const MODEL="gpt-5.6-luna";
+const API_URL="https://api.openai.com/v1/responses";
+let imageData=null;
+function clock(){let d=new Date();let h=String(d.getHours()).padStart(2,"0");let m=String(d.getMinutes()).padStart(2,"0");let s=String(d.getSeconds()).padStart(2,"0");document.getElementById("clock").textContent=h+":"+m+":"+s;}
+setInterval(clock,1000);clock();
+function example(){document.getElementById("message").value="یک برنامه ساده پایتون برای من بنویس";}
+function settings(){document.getElementById("modal").style.display="flex";document.getElementById("key").value=localStorage.getItem("armin_api_key")||"";}
+function closeSettings(){document.getElementById("modal").style.display="none";}
+function saveKey(){let key=document.getElementById("key").value.trim();if(!key){document.getElementById("status").textContent="❌ کلید خالی است";return;}localStorage.setItem("armin_api_key",key);document.getElementById("status").textContent="✅ API Key ذخیره شد";}
+function photoSelected(e){let file=e.target.files[0];if(!file)return;let reader=new FileReader();reader.onload=function(){imageData=reader.result;document.getElementById("previewImg").src=imageData;document.getElementById("preview").style.display="block";};reader.readAsDataURL(file);}
+function keyDown(e){if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();send();}}
+function addMessage(text,type,image){let chat=document.getElementById("chat");let welcome=document.getElementById("welcome");if(welcome)welcome.remove();let row=document.createElement("div");row.className="message "+type;let bubble=document.createElement("div");bubble.className="bubble";if(text){let t=document.createElement("div");t.textContent=text;bubble.appendChild(t);}if(image){let img=document.createElement("img");img.src=image;img.style.maxWidth="220px";img.style.maxHeight="220px";img.style.display="block";img.style.marginTop="8px";img.style.borderRadius="12px";bubble.appendChild(img);}row.appendChild(bubble);chat.appendChild(row);chat.scrollTop=chat.scrollHeight;}
+function extractAnswer(data){if(data.output_text)return String(data.output_text);let result=[];for(let item of(data.output||[])){for(let part of(item.content||[])){if(part.text)result.push(String(part.text));}}return result.join("\n").trim();}
+async function send(){let input=document.getElementById("message");let text=input.value.trim();if(!text&&!imageData)return;let apiKey=localStorage.getItem("armin_api_key");if(!apiKey){addMessage("❌ اول از قسمت API Key کلیدت را وارد کن.","ai");return;}let img=imageData;addMessage(text,"user",img);input.value="";imageData=null;document.getElementById("preview").style.display="none";addMessage("⏳ در حال فکر کردن...","ai");let chat=document.getElementById("chat");let loading=chat.lastElementChild;let content=[];if(text)content.push({type:"input_text",text:text});if(img)content.push({type:"input_image",image_url:img});let payload={model:MODEL,input:[{role:"user",content:content}]};try{let r=await fetch(API_URL,{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+apiKey},body:JSON.stringify(payload)});let d=await r.json();loading.remove();if(!r.ok){let msg=(d.error&&d.error.message)||"خطای API";addMessage("❌ "+msg,"ai");return;}let answer=extractAnswer(d)||"پاسخی دریافت نشد.";addMessage(answer,"ai");}catch(e){loading.remove();addMessage("❌ اتصال برقرار نشد: "+e.message,"ai");}}
+function voice(){let R=window.SpeechRecognition||window.webkitSpeechRecognition;if(!R){alert("تشخیص صدا در این مرورگر پشتیبانی نمی‌شود.");return;}let r=new R();r.lang="fa-IR";r.onresult=function(e){document.getElementById("message").value+=e.results[0][0].transcript;};r.start();}
+</script>
+</body>
+</html>
