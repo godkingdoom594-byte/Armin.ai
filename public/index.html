@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="fa">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Armin.ai Chat</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="chat container">
+    <div class="brand" style="display:flex;align-items:center;gap:10px;margin:18px 0;">
+      <span class="brand-mark">A</span>
+      <strong>Armin.ai — Chat</strong>
+    </div>
+
+    <div id="messages" class="messages" style="min-height:320px;padding:16px;border-radius:12px;border:1px solid rgba(151,174,191,0.08);background:rgba(255,255,255,0.01);overflow:auto;"></div>
+
+    <form id="msgForm" style="display:flex;gap:8px;margin-top:12px;">
+      <input id="msg" placeholder="پ��ام‌تان را بنویسید..." autocomplete="off" style="flex:1;padding:12px;border-radius:10px;border:1px solid rgba(151,174,191,0.06);background:transparent;color:var(--text);" />
+      <button type="submit" class="button button-primary">Send</button>
+    </form>
+
+    <p style="color:var(--muted);margin-top:12px;font-size:0.9rem;">توجه: این نسخه نمونه است — برای کار، مقدار OPENAI_API_KEY را در سرور تنظیم کنید.</p>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
